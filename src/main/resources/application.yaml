@@ -1,0 +1,8 @@
+ktor:
+  deployment:
+    port: 8080
+  application:
+    modules:
+      - com.ZeRo.SecurityKt.configureSecurity
+      - com.ZeRo.RoutingKt.configureRouting
+      - com.ZeRo.SerializationKt.configureSerialization

@@ -1,0 +1,9 @@
+﻿.gradle/
+build/
+.idea/
+.kotlin/
+*.iml
+local.properties
+.env
+.env.*
+!.env.example
