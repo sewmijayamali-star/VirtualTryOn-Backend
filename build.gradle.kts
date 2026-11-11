@@ -46,6 +46,9 @@ dependencies {
 
     implementation("io.ktor:ktor-client-content-negotiation:3.6.0")
 
+    // Ktor HTTP Client
+
+    implementation("io.ktor:ktor-serialization-kotlinx-json:3.6.0")
 
 
     testImplementation(kotlin("test"))
