@@ -1,4 +1,3 @@
-
 package com.ZeRo.data.repository
 
 import com.ZeRo.data.tables.DigitalModelTable
@@ -11,9 +10,7 @@ import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 data class DigitalModelData(
     val modelId: Int,
     val userId: Int,
-    val frontPhotoUrl: String,
-    val sidePhotoUrl: String,
-    val backPhotoUrl: String,
+    val modelImageUrl: String,
     val status: String
 )
 
@@ -21,9 +18,7 @@ class DigitalModelRepository {
 
     fun saveOrUpdate(
         userId: Int,
-        frontPhotoUrl: String,
-        sidePhotoUrl: String,
-        backPhotoUrl: String
+        modelImageUrl: String
     ): DigitalModelData = transaction {
 
         val existing = DigitalModelTable
@@ -32,54 +27,51 @@ class DigitalModelRepository {
             .singleOrNull()
 
         if (existing == null) {
+
             val modelId = DigitalModelTable.insert {
                 it[DigitalModelTable.userId] = userId
-                it[DigitalModelTable.frontPhotoUrl] = frontPhotoUrl
-                it[DigitalModelTable.sidePhotoUrl] = sidePhotoUrl
-                it[DigitalModelTable.backPhotoUrl] = backPhotoUrl
+                it[DigitalModelTable.modelImageUrl] = modelImageUrl
                 it[DigitalModelTable.status] = "PENDING"
             }[DigitalModelTable.id].value
 
             DigitalModelData(
-                modelId, userId,
-                frontPhotoUrl, sidePhotoUrl, backPhotoUrl,
+                modelId,
+                userId,
+                modelImageUrl,
                 "PENDING"
             )
+
         } else {
+
             DigitalModelTable.update({
                 DigitalModelTable.userId eq userId
             }) {
-                it[DigitalModelTable.frontPhotoUrl] = frontPhotoUrl
-                it[DigitalModelTable.sidePhotoUrl] = sidePhotoUrl
-                it[DigitalModelTable.backPhotoUrl] = backPhotoUrl
+                it[DigitalModelTable.modelImageUrl] = modelImageUrl
                 it[DigitalModelTable.status] = "PENDING"
             }
 
             DigitalModelData(
                 existing[DigitalModelTable.id].value,
                 userId,
-                frontPhotoUrl,
-                sidePhotoUrl,
-                backPhotoUrl,
+                modelImageUrl,
                 "PENDING"
             )
         }
     }
 
-    fun findByUserId(userId: Int): DigitalModelData? = transaction {
-        DigitalModelTable
-            .selectAll()
-            .where { DigitalModelTable.userId eq userId }
-            .singleOrNull()
-            ?.let { row ->
-                DigitalModelData(
-                    modelId = row[DigitalModelTable.id].value,
-                    userId = row[DigitalModelTable.userId].value,
-                    frontPhotoUrl = row[DigitalModelTable.frontPhotoUrl],
-                    sidePhotoUrl = row[DigitalModelTable.sidePhotoUrl],
-                    backPhotoUrl = row[DigitalModelTable.backPhotoUrl],
-                    status = row[DigitalModelTable.status]
-                )
-            }
-    }
+    fun findByUserId(userId: Int): DigitalModelData? =
+        transaction {
+            DigitalModelTable
+                .selectAll()
+                .where { DigitalModelTable.userId eq userId }
+                .singleOrNull()
+                ?.let { row ->
+                    DigitalModelData(
+                        modelId = row[DigitalModelTable.id].value,
+                        userId = row[DigitalModelTable.userId].value,
+                        modelImageUrl = row[DigitalModelTable.modelImageUrl],
+                        status = row[DigitalModelTable.status]
+                    )
+                }
+        }
 }
