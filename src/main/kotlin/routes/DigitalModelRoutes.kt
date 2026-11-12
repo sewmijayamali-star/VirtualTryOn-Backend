@@ -10,6 +10,8 @@ import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.http.content.*
+import io.ktor.utils.io.readRemaining
+import io.ktor.utils.io.core.readBytes
 
 fun Route.digitalModelRoutes() {
 
@@ -46,9 +48,7 @@ fun Route.digitalModelRoutes() {
 
                         modelType = part.contentType?.toString()
 
-                        modelBytes = part.provider().use {
-                            it.readBytes()
-                        }
+                        modelBytes = part.provider().readRemaining().readBytes()
                     }
 
                     part.release()
@@ -87,9 +87,7 @@ fun Route.digitalModelRoutes() {
                             message = "Digital model photo saved",
                             modelId = result.modelId,
                             userId = result.userId,
-                            frontPhotoUrl = result.frontPhotoUrl,
-                            sidePhotoUrl = result.sidePhotoUrl,
-                            backPhotoUrl = result.backPhotoUrl,
+                            modelImageUrl = result.modelImageUrl,
                             status = result.status
                         )
                     )
