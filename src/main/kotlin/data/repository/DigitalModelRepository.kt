@@ -35,10 +35,10 @@ class DigitalModelRepository {
             }[DigitalModelTable.id].value
 
             DigitalModelData(
-                modelId,
-                userId,
-                modelImageUrl,
-                "PENDING"
+                modelId = modelId,
+                userId = userId,
+                modelImageUrl = modelImageUrl,
+                status = "PENDING"
             )
 
         } else {

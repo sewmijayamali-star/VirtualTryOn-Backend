@@ -1,4 +1,3 @@
-
 package com.ZeRo.routes
 
 import com.ZeRo.dto.DigitalModelResponse
@@ -13,12 +12,15 @@ import io.ktor.server.routing.*
 import io.ktor.http.content.*
 
 fun Route.digitalModelRoutes() {
+
     val service = DigitalModelService()
 
     authenticate("auth-jwt") {
         route("/api/digital-model") {
 
+            // Upload one model photo
             post("/photos") {
+
                 val principal = call.principal<JWTPrincipal>()
                 val userId = principal
                     ?.payload
@@ -33,69 +35,56 @@ fun Route.digitalModelRoutes() {
                     return@post
                 }
 
-                var front: ByteArray? = null
-                var side: ByteArray? = null
-                var back: ByteArray? = null
+                var modelBytes: ByteArray? = null
+                var modelType: String? = null
 
-                var frontType: String? = null
-                var sideType: String? = null
-                var backType: String? = null
-
-                val multipart = call.receiveMultipart(
-                    formFieldLimit = 10 * 1024 * 1024
-                )
+                val multipart = call.receiveMultipart()
 
                 multipart.forEachPart { part ->
-                    if (part is PartData.FileItem) {
-                        val type = part.contentType?.toString()
-                        val bytes = part.streamProvider().use {
+
+                    if (part is PartData.FileItem && part.name == "modelPhoto") {
+
+                        modelType = part.contentType?.toString()
+
+                        modelBytes = part.provider().use {
                             it.readBytes()
                         }
-
-                        when (part.name) {
-                            "frontPhoto" -> {
-                                front = bytes
-                                frontType = type
-                            }
-                            "sidePhoto" -> {
-                                side = bytes
-                                sideType = type
-                            }
-                            "backPhoto" -> {
-                                back = bytes
-                                backType = type
-                            }
-                        }
                     }
-                    part.dispose()
+
+                    part.release()
                 }
 
-                if (front == null || side == null || back == null) {
+                val uploadedModelBytes = modelBytes
+                val uploadedModelType = modelType
+
+                if (uploadedModelBytes == null || uploadedModelBytes.isEmpty()) {
                     call.respond(
                         HttpStatusCode.BadRequest,
-                        mapOf(
-                            "message" to
-                                    "Front, side and back photos are required"
-                        )
+                        mapOf("message" to "Model photo is required")
+                    )
+                    return@post
+                }
+
+                if (uploadedModelType?.startsWith("image/") != true) {
+                    call.respond(
+                        HttpStatusCode.BadRequest,
+                        mapOf("message" to "Please upload a valid image")
                     )
                     return@post
                 }
 
                 try {
+
                     val result = service.saveDigitalModel(
                         userId = userId,
-                        frontBytes = front!!,
-                        frontType = frontType ?: "",
-                        sideBytes = side!!,
-                        sideType = sideType ?: "",
-                        backBytes = back!!,
-                        backType = backType ?: ""
+                        modelBytes = uploadedModelBytes,
+                        modelType = uploadedModelType
                     )
 
                     call.respond(
                         HttpStatusCode.OK,
                         DigitalModelResponse(
-                            message = "Digital model photos saved",
+                            message = "Digital model photo saved",
                             modelId = result.modelId,
                             userId = result.userId,
                             frontPhotoUrl = result.frontPhotoUrl,
@@ -104,18 +93,22 @@ fun Route.digitalModelRoutes() {
                             status = result.status
                         )
                     )
+
                 } catch (e: Exception) {
+
                     call.application.log.error(
                         "Digital model photo upload failed",
                         e
                     )
+
                     call.respond(
                         HttpStatusCode.InternalServerError,
-                        mapOf("message" to "Could not save digital model photos")
+                        mapOf("message" to "Could not save digital model photo")
                     )
                 }
             }
 
+            // Get saved model photo
             get {
                 val principal = call.principal<JWTPrincipal>()
                 val userId = principal
@@ -142,9 +135,7 @@ fun Route.digitalModelRoutes() {
                             message = "Digital model retrieved",
                             modelId = model.modelId,
                             userId = model.userId,
-                            frontPhotoUrl = model.frontPhotoUrl,
-                            sidePhotoUrl = model.sidePhotoUrl,
-                            backPhotoUrl = model.backPhotoUrl,
+                            modelImageUrl = model.modelImageUrl,
                             status = model.status
                         )
                     )
