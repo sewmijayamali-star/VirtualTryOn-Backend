@@ -5,7 +5,9 @@ import com.ZeRo.data.tables.ProductTable
 import org.jetbrains.exposed.v1.core.eq
 import org.jetbrains.exposed.v1.jdbc.selectAll
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
+import kotlinx.serialization.Serializable
 
+@Serializable
 data class ProductData(
     val productId: Int,
     val name: String,

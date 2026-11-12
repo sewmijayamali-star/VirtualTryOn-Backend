@@ -7,6 +7,7 @@ import org.jetbrains.exposed.v1.jdbc.Database
 import org.jetbrains.exposed.v1.jdbc.SchemaUtils
 import org.jetbrains.exposed.v1.jdbc.transactions.transaction
 import com.ZeRo.data.tables.DigitalModelTable
+import com.ZeRo.data.tables.ProductTable
 
 object DatabaseFactory {
 
@@ -36,7 +37,8 @@ object DatabaseFactory {
         transaction {
             SchemaUtils.create(
                 UserTable,
-                DigitalModelTable
+                DigitalModelTable,
+                ProductTable
             )
         }
     }
